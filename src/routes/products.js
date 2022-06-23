@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { isAdmin } from "../middlewares/index.js";
-import Modifier from "../utils/productModifier.js";
+import Modifier from "../utils/index.js";
 
 const modifier = new Modifier("products");
 

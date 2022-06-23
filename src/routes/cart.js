@@ -1,64 +1,58 @@
 import { Router } from "express";
-import { isAdmin } from "../middlewares/index.js";
-import Modifier from "../utils/cartModifier.js";
+import Modifier from "../utils/index.js";
 
-const modifier = new Modifier("cart");
+const cartModifier = new Modifier("cart");
+const productModifier = new Modifier("products");
 
 const router = Router();
 
-router.get("/:id/products", async (req, res, next) => {
+// get all cart products
+router.get("/", async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await modifier.getAll();
+    const data = await cartModifier.getAll();
     res.status(200).json({ data });
   } catch (error) {
     next(error);
   }
 });
 
-router.post("/", isAdmin, async (req, res, next) => {
+// create cart
+router.post("/", async (req, res, next) => {
   try {
-    const { name, description, code, photo, price, stock } = req.body;
-    const product = await modifier.save({
-      timestamp: Date.now(),
-      name,
-      description,
-      code,
-      photo,
-      price,
-      stock,
-    });
+    const data = await cartModifier.createCart();
+    res.status(200).json({ data });
+  } catch (error) {
+    next(error);
+  }
+});
 
+// add product by id to cart
+router.post("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const product = await productModifier.getById(id);
+    await cartModifier.saveInCart(product);
     product ? res.sendStatus(200) : null;
   } catch (error) {
     next(error);
   }
 });
 
-router.put("/:id", isAdmin, async (req, res, next) => {
+// delete all cart products
+router.delete("/", async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { name, description, code, photo, price, stock } = req.body;
-
-    await modifier.updateById(id, {
-      name,
-      description,
-      code,
-      photo,
-      price,
-      stock,
-    });
-
-    res.sendStatus(200);
+    await cartModifier.deleteAll();
+    res.send(".");
   } catch (error) {
     next(error);
   }
 });
 
-router.delete("/:id", isAdmin, async (req, res, next) => {
+// delete product by id from cart
+router.delete("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
-    await modifier.deleteById(id);
+    await cartModifier.deleteById(id);
     res.send(".");
   } catch (error) {
     next(error);

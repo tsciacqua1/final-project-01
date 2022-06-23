@@ -1,14 +1,11 @@
 import { promises as fs } from "fs";
-import ProductModifier from "./productModifier.js";
-
-const productModifier = new ProductModifier("products");
 
 class Modifier {
   constructor(fileName) {
     this.fileName = fileName;
   }
 
-  createCart = async (object) => {
+  save = async (object) => {
     try {
       await fs.readFile(`./${this.fileName}.txt`);
     } catch (err) {
@@ -33,24 +30,34 @@ class Modifier {
     }
   };
 
-  deleteCart = async (id) => {
+  saveInCart = async (object) => {
+    if (object) {
+      const file = await fs.readFile(`./${this.fileName}.txt`, "utf8");
+      const parsedFile = JSON.parse(file);
+      const array = [...parsedFile, object];
+      await fs.writeFile(`./${this.fileName}.txt`, JSON.stringify(array));
+    }
+  };
+
+  updateById = async (id, object) => {
     const file = JSON.parse(await fs.readFile(`./${this.fileName}.txt`));
     const index = file.findIndex((el) => el.id === +id);
+
     if (index > -1) {
-      file.splice(index, 1);
+      file[index] = { id: +id, timestamp: file[index].timestamp, ...object };
       await fs.writeFile(`./${this.fileName}.txt`, JSON.stringify(file));
     }
   };
 
   getById = async (id) => {
-    const file = JSON.parse(await fs.readFile(`./${this.fileName}.txt`));
-    const result = file.find((el) => el.id === +id);
+    const file = await fs.readFile(`./${this.fileName}.txt`);
+    const parsedFile = JSON.parse(file);
+    const result = parsedFile.find((el) => el.id === +id);
     if (!result) return null;
-    return result.products;
+    return result;
   };
 
-  addProductById = async (id) => {
-    const product = productModifier.getById(+id);
+  getAll = async () => {
     return JSON.parse(await fs.readFile(`./${this.fileName}.txt`));
   };
 
@@ -60,6 +67,18 @@ class Modifier {
     if (index > -1) {
       file.splice(index, 1);
       await fs.writeFile(`./${this.fileName}.txt`, JSON.stringify(file));
+    }
+  };
+
+  deleteAll = async () => {
+    await fs.rm(`./${this.fileName}.txt`);
+  };
+
+  createCart = async () => {
+    try {
+      await fs.readFile(`./${this.fileName}.txt`);
+    } catch (err) {
+      await fs.writeFile(`./${this.fileName}.txt`, "[]");
     }
   };
 }

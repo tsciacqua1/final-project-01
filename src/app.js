@@ -21,6 +21,10 @@ const errorHandler = (err, req, res, next) => {
   res.status(500).send({ error: true, error: err.message });
 };
 
+app.all("*", (req, res) => {
+  res.status(404).json({ error: true, message: `${req.path} doesn't exist` });
+});
+
 app.use(errorHandler);
 
 app.listen(port, () => {
